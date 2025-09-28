@@ -8,11 +8,17 @@ from django.db.models import Q
 
 from .models import Animal
 from .serializers import AnimalSerializer, AnimalCreateSerializer, AnimalListSerializer
+from permissions.permissions import (
+    CanManageAnimals, 
+    CanViewReports, 
+    IsAdminUser,
+    IsAdminOrFarmWorker
+)
 
 
 class AnimalViewSet(viewsets.ModelViewSet):
     queryset = Animal.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [CanManageAnimals]  # Custom permission class
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['sex', 'breed', 'health_status', 'year_of_birth']
     search_fields = ['animal_id', 'name', 'notes']
@@ -72,7 +78,7 @@ class AnimalViewSet(viewsets.ModelViewSet):
         except Animal.DoesNotExist:
             raise Http404
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[CanViewReports])
     def statistics(self, request):
         """Get animal statistics"""
         total_animals = Animal.objects.count()
@@ -111,7 +117,7 @@ class AnimalViewSet(viewsets.ModelViewSet):
         
         return Response(stats)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[IsAdminOrFarmWorker])
     def parents(self, request):
         """Get list of potential parents (for creating new animals)"""
         males = Animal.objects.filter(sex='Male').values('id', 'animal_id', 'name')

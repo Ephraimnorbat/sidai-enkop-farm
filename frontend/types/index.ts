@@ -5,11 +5,21 @@ export interface User {
   first_name: string
   last_name: string
   date_joined: string
+  role?: string
+  role_display?: string
+  permissions?: {
+    can_create_animals: boolean
+    can_edit_animals: boolean
+    can_delete_animals: boolean
+    can_view_reports: boolean
+    can_manage_users: boolean
+  }
 }
 
 export interface Animal {
   id: number
   animal_id: string
+  type: AnimalType
   name: string
   sex: 'Male' | 'Female'
   breed: string
@@ -29,7 +39,10 @@ export interface Animal {
   updated_at: string
 }
 
+export type AnimalType = 'dog' | 'cow' | 'goat' | 'sheep' | 'pig';
+
 export interface AnimalCreate {
+  type: AnimalType
   name: string
   sex: 'Male' | 'Female'
   breed: string
@@ -40,6 +53,13 @@ export interface AnimalCreate {
   health_status?: string
   notes?: string
 }
+export const ANIMAL_TYPE_CHOICES: { value: AnimalType; label: string }[] = [
+  { value: 'dog', label: 'Dog' },
+  { value: 'cow', label: 'Cow' },
+  { value: 'goat', label: 'Goat' },
+  { value: 'sheep', label: 'Sheep' },
+  { value: 'pig', label: 'Pig' },
+];
 
 export interface AnimalStatistics {
   total_animals: number

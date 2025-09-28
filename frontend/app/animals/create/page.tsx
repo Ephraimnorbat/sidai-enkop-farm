@@ -10,6 +10,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 
 export default function CreateAnimalPage() {
   const [formData, setFormData] = useState<AnimalCreate>({
+    type: 'cow',
     name: '',
     sex: 'Male',
     breed: 'Jersey',
@@ -20,6 +21,14 @@ export default function CreateAnimalPage() {
     health_status: 'Healthy',
     notes: '',
   })
+  // Dynamic breed options based on type
+  const BREED_OPTIONS: Record<string, string[]> = {
+    dog: ['German Shepherd', 'Labrador', 'Beagle', 'Bulldog', 'Other'],
+    cow: ['Jersey', 'Holstein', 'Guernsey', 'Ayrshire', 'Brown_Swiss', 'Zebu', 'Crossbreed'],
+    goat: ['Boer', 'Kalahari Red', 'Saanen', 'Alpine', 'Other'],
+    sheep: ['Dorper', 'Merino', 'Hampshire', 'Suffolk', 'Other'],
+    pig: ['Large White', 'Landrace', 'Duroc', 'Pietrain', 'Other'],
+  }
   const [parents, setParents] = useState<ParentsData>({ fathers: [], mothers: [] })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -56,7 +65,15 @@ export default function CreateAnimalPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    
+    // If type changes, reset breed to default for that type
+    if (name === 'type') {
+      setFormData(prev => ({
+        ...prev,
+        type: value as AnimalCreate['type'],
+        breed: BREED_OPTIONS[value][0],
+      }))
+      return
+    }
     setFormData(prev => ({
       ...prev,
       [name]: name === 'weight' || name === 'year_of_birth' || name === 'father' || name === 'mother'
@@ -100,7 +117,26 @@ export default function CreateAnimalPage() {
               <h3 className="text-lg font-semibold text-cyan-400 border-b border-dark-700 pb-2">
                 Basic Information
               </h3>
-              
+              {/* Animal Type Selection */}
+              <div>
+                <label htmlFor="type" className="block text-sm font-medium text-dark-200 mb-2">
+                  Animal Type <span className="text-red-400">*</span>
+                </label>
+                <select
+                  id="type"
+                  name="type"
+                  required
+                  value={formData.type}
+                  onChange={handleChange}
+                  className="input-cyber w-full py-3 rounded-lg"
+                >
+                  {['dog', 'cow', 'goat', 'sheep', 'pig'].map(type => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-dark-200 mb-2">
                   Animal Name <span className="text-red-400">*</span>
@@ -116,7 +152,6 @@ export default function CreateAnimalPage() {
                   placeholder="Enter animal name"
                 />
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="sex" className="block text-sm font-medium text-dark-200 mb-2">
@@ -135,7 +170,6 @@ export default function CreateAnimalPage() {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label htmlFor="breed" className="block text-sm font-medium text-dark-200 mb-2">
                     Breed <span className="text-red-400">*</span>
@@ -148,7 +182,7 @@ export default function CreateAnimalPage() {
                     onChange={handleChange}
                     className="input-cyber w-full py-3 rounded-lg"
                   >
-                    {BREED_CHOICES.map(breed => (
+                    {BREED_OPTIONS[formData.type].map(breed => (
                       <option key={breed} value={breed}>
                         {breed.replace('_', ' ')}
                       </option>
@@ -156,7 +190,6 @@ export default function CreateAnimalPage() {
                   </select>
                 </div>
               </div>
-
               <div>
                 <label htmlFor="year_of_birth" className="block text-sm font-medium text-dark-200 mb-2">
                   Year of Birth <span className="text-red-400">*</span>

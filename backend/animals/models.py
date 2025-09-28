@@ -8,6 +8,15 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 class Animal(models.Model):
+    TYPE_CHOICES = [
+        ('Cow', 'Cow'),
+        ('Goat', 'Goat'),
+        ('Sheep', 'Sheep'),
+        ('Pig', 'Pig'),
+        ('Dog', 'Dog'),
+    ]
+
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='Cow')
     SEX_CHOICES = [
         ('Male', 'Male'),
         ('Female', 'Female'),
@@ -91,9 +100,9 @@ class Animal(models.Model):
                 'weight': str(self.weight) if self.weight else None,
                 'health_status': self.health_status,
                 'notes': self.notes,
-                'farm': 'Sidai Enkop Ranch - Isinya, Kitengela'
+                'farm': 'Sidai Enkop Ranch - Isinya, Kitengela',
+                'type': self.type,
             }
-            
             # Create QR code
             qr = qrcode.QRCode(
                 version=1,
@@ -103,10 +112,8 @@ class Animal(models.Model):
             )
             qr.add_data(json.dumps(qr_data))
             qr.make(fit=True)
-
             # Create QR code image
             qr_img = qr.make_image(fill_color="black", back_color="white")
-            
             # Save to BytesIO
             buffer = BytesIO()
             qr_img.save(buffer, format='PNG')

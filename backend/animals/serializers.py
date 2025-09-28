@@ -12,7 +12,7 @@ class AnimalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Animal
         fields = [
-            'id', 'animal_id', 'name', 'sex', 'breed', 'year_of_birth',
+            'id', 'animal_id', 'type', 'name', 'sex', 'breed', 'year_of_birth',
             'father', 'mother', 'father_name', 'mother_name', 'weight',
             'health_status', 'notes', 'qr_code', 'qr_code_url', 'age',
             'offspring_count', 'created_at', 'updated_at'
@@ -50,7 +50,7 @@ class AnimalCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Animal
         fields = [
-            'name', 'sex', 'breed', 'year_of_birth', 'father', 'mother',
+            'type', 'name', 'sex', 'breed', 'year_of_birth', 'father', 'mother',
             'weight', 'health_status', 'notes'
         ]
 
@@ -82,7 +82,7 @@ class AnimalListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Animal
         fields = [
-            'id', 'animal_id', 'name', 'sex', 'breed', 'year_of_birth',
+            'id', 'animal_id', 'type', 'name', 'sex', 'breed', 'year_of_birth',
             'father_name', 'mother_name', 'weight', 'health_status',
             'age', 'created_at'
         ]

@@ -1,3 +1,38 @@
+// Gallery API functions
+export const galleryAPI = {
+  async getImages() {
+    const response = await api.get('/api/gallery/gallery/')
+    return response.data.results || response.data
+  },
+  async uploadImage(imageData: FormData) {
+    const response = await api.post('/api/gallery/gallery/', imageData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  },
+  async deleteImage(id: number) {
+    const response = await api.delete(`/api/gallery/gallery/${id}/`)
+    return response.data
+  },
+}
+
+// News API functions
+export const newsAPI = {
+  async getNews() {
+    const response = await api.get('/api/news/news/')
+    return response.data.results || response.data
+  },
+  async createNews(newsData: FormData) {
+    const response = await api.post('/api/news/news/', newsData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  },
+  async deleteNews(id: number) {
+    const response = await api.delete(`/api/news/news/${id}/`)
+    return response.data
+  },
+}
 import axios from 'axios'
 import Cookies from 'js-cookie'
 
@@ -86,6 +121,16 @@ export const authAPI = {
 
   async getCsrfToken() {
     const response = await api.get('/api/auth/csrf-token/')
+    return response.data
+  },
+
+  async getUsers() {
+    const response = await api.get('/api/auth/users/')
+    return response.data
+  },
+
+  async updateUserRole(userId: number, role: string) {
+    const response = await api.put(`/api/auth/users/${userId}/role/`, { role })
     return response.data
   },
 }

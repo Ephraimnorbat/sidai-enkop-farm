@@ -28,6 +28,14 @@ export function Navbar() {
     { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
   ]
 
+  const publicLinks = [
+    { name: 'Home', href: '/' },
+    { name: 'About', href: '/about' },
+    { name: 'Contact', href: '/contact' },
+    { name: 'Gallery', href: '/gallery' },
+    { name: 'News', href: '/news' },
+  ]
+
   return (
     <nav className="bg-dark-900/80 backdrop-blur-lg border-b border-dark-700 sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -43,23 +51,41 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          {isAuthenticated && (
-            <div className="hidden md:flex items-center space-x-8">
-              {navigation.map((item) => {
-                const IconComponent = item.icon
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="flex items-center space-x-2 text-dark-300 hover:text-cyan-400 transition-colors duration-200"
-                  >
-                    <IconComponent className="h-5 w-5" />
-                    <span>{item.name}</span>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
+          <div className="hidden md:flex items-center space-x-8">
+            {publicLinks.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="flex items-center space-x-2 text-dark-300 hover:text-cyan-400 transition-colors duration-200"
+              >
+                <span>{item.name}</span>
+              </Link>
+            ))}
+            {isAuthenticated && navigation.map((item) => {
+              const IconComponent = item.icon
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="flex items-center space-x-2 text-dark-300 hover:text-cyan-400 transition-colors duration-200"
+                >
+                  <IconComponent className="h-5 w-5" />
+                  <span>{item.name}</span>
+                </Link>
+              )
+            })}
+            {/* Admin-only links */}
+            {isAuthenticated && user?.role === 'admin' && (
+              <>
+                <Link href="/gallery/create" className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-600 transition-colors duration-200">
+                  <span>Upload Image</span>
+                </Link>
+                <Link href="/news/create" className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-600 transition-colors duration-200">
+                  <span>Create News</span>
+                </Link>
+              </>
+            )}
+          </div>
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
@@ -67,9 +93,16 @@ export function Navbar() {
               <>
                 <div className="hidden md:flex items-center space-x-3">
                   <UserIcon className="h-5 w-5 text-dark-400" />
-                  <span className="text-dark-300">
-                    {user?.first_name || user?.username}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-dark-300">
+                      {user?.first_name || user?.username}
+                    </span>
+                    {user?.role_display && (
+                      <span className="text-xs text-cyan-400">
+                        {user.role_display}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={handleLogout}
@@ -113,13 +146,24 @@ export function Navbar() {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-dark-700 py-4">
-            {isAuthenticated ? (
+            {/* Public links for all users */}
+            {publicLinks.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="block px-4 py-2 text-dark-300 hover:text-cyan-400 hover:bg-dark-800/50 transition-all duration-200"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
+            {/* Authenticated navigation */}
+            {isAuthenticated && (
               <>
                 <div className="flex items-center space-x-3 px-4 py-2 text-dark-300">
                   <UserIcon className="h-5 w-5" />
                   <span>{user?.first_name || user?.username}</span>
                 </div>
-                
                 {navigation.map((item) => {
                   const IconComponent = item.icon
                   return (
@@ -134,7 +178,17 @@ export function Navbar() {
                     </Link>
                   )
                 })}
-                
+                {/* Admin-only links */}
+                {user?.role === 'admin' && (
+                  <>
+                    <Link href="/gallery/create" className="block px-4 py-2 text-cyan-400 hover:bg-dark-800/50 transition-all duration-200" onClick={() => setIsMobileMenuOpen(false)}>
+                      Upload Image
+                    </Link>
+                    <Link href="/news/create" className="block px-4 py-2 text-cyan-400 hover:bg-dark-800/50 transition-all duration-200" onClick={() => setIsMobileMenuOpen(false)}>
+                      Create News
+                    </Link>
+                  </>
+                )}
                 <button
                   onClick={handleLogout}
                   className="flex items-center space-x-3 px-4 py-2 w-full text-left text-dark-300 hover:text-red-400 hover:bg-dark-800/50 transition-all duration-200"
@@ -143,7 +197,9 @@ export function Navbar() {
                   <span>Logout</span>
                 </button>
               </>
-            ) : (
+            )}
+            {/* Login/Register for unauthenticated users */}
+            {!isAuthenticated && (
               <>
                 <Link
                   href="/auth/login"

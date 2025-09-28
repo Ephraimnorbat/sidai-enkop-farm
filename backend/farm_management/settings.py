@@ -8,7 +8,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-temporary-key-change-
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'localhost:3000']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'localhost:3000', 'testserver']
 
 # Application definition
 INSTALLED_APPS = [
@@ -22,8 +22,12 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'django_filters',
+    'permissions',
     'accounts',
     'animals',
+    'farm_management',
+    'gallery',
+    'news',
 ]
 
 MIDDLEWARE = [

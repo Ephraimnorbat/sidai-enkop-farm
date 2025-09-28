@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { useAuth } from '@/components/AuthProvider'
 import { animalsAPI } from '@/lib/api'
 import { Animal, PaginatedResponse } from '@/types'
 import { 
@@ -15,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function AnimalsPage() {
+  const { user } = useAuth()
   const [animals, setAnimals] = useState<Animal[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -93,10 +95,12 @@ export default function AnimalsPage() {
               Filters
             </button>
             
-            <Link href="/animals/create" className="btn-cyber flex items-center gap-2">
-              <PlusIcon className="h-5 w-5" />
-              Add Animal
-            </Link>
+            {user?.permissions?.can_create_animals && (
+              <Link href="/animals/create" className="btn-cyber flex items-center gap-2">
+                <PlusIcon className="h-5 w-5" />
+                Add Animal
+              </Link>
+            )}
           </div>
         </div>
 
