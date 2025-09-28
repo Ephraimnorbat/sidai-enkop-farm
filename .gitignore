@@ -2,13 +2,14 @@
 node_modules/
 .next/
 ./frontend/next/
-./frontend/node_modules
+frontend/node_modules
 # Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 db.sqlite3
+/backend/db.sqlite3
 .env
 venv/
 
