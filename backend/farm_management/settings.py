@@ -119,12 +119,8 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://sidai-enkop-farm.onrender.com",
-    
-]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -145,6 +141,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'https://sidai-enkop-farm.onrender.com',
+    'https://sidai-enkop-farm.vercel.app',   
 ]
 
 CSRF_COOKIE_HTTPONLY = False
