@@ -8,7 +8,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-temporary-key-change-
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'localhost:3000', 'testserver']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'localhost:3000', 'testserver','*']
 
 # Application definition
 INSTALLED_APPS = [
