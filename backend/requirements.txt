@@ -39,4 +39,6 @@ PyYAML==6.0.1
 filetype==1.2.0
 rich==13.7.1
 websockets==10.4
+gunicorn>=21.2.0
+
 
