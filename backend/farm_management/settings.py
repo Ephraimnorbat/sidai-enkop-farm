@@ -8,7 +8,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-temporary-key-change-
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'localhost:3000', 'testserver','*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'localhost:3000', 'testserver','sidai-enkop-farm.onrender.com']
 
 # Application definition
 INSTALLED_APPS = [
@@ -122,6 +122,8 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://sidai-enkop-farm.onrender.com",
+    
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -142,6 +144,7 @@ CORS_ALLOW_HEADERS = [
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'https://sidai-enkop-farm.onrender.com',
 ]
 
 CSRF_COOKIE_HTTPONLY = False
