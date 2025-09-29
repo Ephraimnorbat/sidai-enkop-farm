@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Integration test script for Sidai Enkop Farm Management System
+Integration test script for Sidai Encop Farm Management System
 """
 
 import subprocess
