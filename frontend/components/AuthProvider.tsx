@@ -9,6 +9,7 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  loading?: boolean // For backward compatibility
   login: (credentials: { username: string; password: string }) => Promise<void>
   register: (userData: {
     username: string
@@ -113,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     isAuthenticated,
     isLoading,
+    loading: isLoading,
     login,
     register,
     logout,
@@ -120,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!isLoading && children}
     </AuthContext.Provider>
   )
 }
@@ -130,5 +132,9 @@ export function useAuth() {
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider')
   }
-  return context
+  // For backward compatibility, map isLoading to loading
+  return {
+    ...context,
+    loading: context.isLoading
+  } as AuthContextType & { loading: boolean }
 }

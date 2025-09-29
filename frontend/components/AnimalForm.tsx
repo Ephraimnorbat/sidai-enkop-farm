@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { animalsAPI } from '@/lib/api'
-import { Animal, AnimalCreate, Parent, ParentsData, BREED_CHOICES, SEX_CHOICES, HEALTH_STATUS_OPTIONS } from '@/types'
+import { Animal, AnimalCreate, Parent, ParentsData, BREED_CHOICES, SEX_CHOICES, HEALTH_STATUS_OPTIONS, ANIMAL_TYPE_CHOICES } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -28,10 +28,16 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 
+// Define enums
+const SexEnum = z.enum(['Male', 'Female']);
+const BreedEnum = z.enum(BREED_CHOICES as [string, ...string[]]);
+const AnimalTypeEnum = z.enum(['dog', 'cow', 'goat', 'sheep', 'pig']);
+
 const animalSchema = z.object({
+  type: AnimalTypeEnum,
   name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  sex: z.enum(['Male', 'Female'], { required_error: 'Sex is required' }),
-  breed: z.enum(BREED_CHOICES as [string, ...string[]], { required_error: 'Breed is required' }),
+  sex: SexEnum,
+  breed: BreedEnum,
   year_of_birth: z.number()
     .min(1900, 'Year must be after 1900')
     .max(new Date().getFullYear(), 'Year cannot be in the future'),
@@ -60,13 +66,14 @@ export function AnimalForm({ animal, isEdit = false, onSuccess, onCancel }: Anim
   const form = useForm<AnimalFormData>({
     resolver: zodResolver(animalSchema),
     defaultValues: {
+      type: (animal?.type as 'dog' | 'cow' | 'goat' | 'sheep' | 'pig') || 'cow',
       name: animal?.name || '',
-      sex: animal?.sex || undefined,
-      breed: animal?.breed as any || undefined,
+      sex: animal?.sex as 'Male' | 'Female' | undefined,
+      breed: animal?.breed as string | undefined,
       year_of_birth: animal?.year_of_birth || new Date().getFullYear(),
-      father: animal?.father || undefined,
-      mother: animal?.mother || undefined,
-      weight: animal?.weight || undefined,
+      father: animal?.father,
+      mother: animal?.mother,
+      weight: animal?.weight,
       health_status: animal?.health_status || 'Healthy',
       notes: animal?.notes || '',
     },
@@ -95,6 +102,7 @@ export function AnimalForm({ animal, isEdit = false, onSuccess, onCancel }: Anim
 
       // Remove undefined values and prepare data
       const submitData: AnimalCreate = {
+        type: data.type,
         name: data.name,
         sex: data.sex,
         breed: data.breed,
@@ -147,6 +155,31 @@ export function AnimalForm({ animal, isEdit = false, onSuccess, onCancel }: Anim
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-white">Basic Information</h3>
               
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-300">Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                          <SelectValue placeholder="Select animal type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-gray-800 border-gray-700">
+                        {ANIMAL_TYPE_CHOICES.map((type: { value: string; label: string }) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="name"

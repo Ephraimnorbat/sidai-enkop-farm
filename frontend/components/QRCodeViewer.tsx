@@ -76,12 +76,8 @@ export function QRCodeViewer({ animalId, animalName, qrCodeUrl }: QRCodeViewerPr
           <img
             src={qrCodeUrl}
             alt={`QR Code for ${animalName}`}
-            className="w-32 h-32 mx-auto"
-            style={{
-              imageRendering: 'pixelated',
-              imageRendering: '-moz-crisp-edges',
-              imageRendering: 'crisp-edges'
-            }}
+            className="w-32 h-32 mx-auto pixelated"
+            style={{ imageRendering: 'crisp-edges' }}
           />
         </div>
         

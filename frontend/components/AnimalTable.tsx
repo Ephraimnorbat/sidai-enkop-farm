@@ -76,9 +76,21 @@ export function AnimalTable({ animals, onDelete }: AnimalTableProps) {
   const sortedAnimals = [...animals].sort((a, b) => {
     if (!sortConfig) return 0
 
-    const aValue = a[sortConfig.key]
-    const bValue = b[sortConfig.key]
+    const aValue = a[sortConfig.key as keyof Animal]
+    const bValue = b[sortConfig.key as keyof Animal]
 
+    // Handle undefined or null values
+    if (aValue === undefined || aValue === null) return 1
+    if (bValue === undefined || bValue === null) return -1
+
+    // Handle string comparison
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return sortConfig.direction === 'asc' 
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue)
+    }
+
+    // Handle number comparison
     if (aValue < bValue) {
       return sortConfig.direction === 'asc' ? -1 : 1
     }
@@ -96,7 +108,7 @@ export function AnimalTable({ animals, onDelete }: AnimalTableProps) {
     })
   }
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (event: React.MouseEvent<HTMLButtonElement> | null) => {
     if (!deleteDialog.animal) return
 
     try {
@@ -222,10 +234,10 @@ export function AnimalTable({ animals, onDelete }: AnimalTableProps) {
                       <DropdownMenuContent 
                         className="bg-gray-800 border-gray-700" 
                         align="end"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         <DropdownMenuItem
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent) => {
                             e.stopPropagation()
                             router.push(`/animals/${animal.id}`)
                           }}
@@ -235,7 +247,7 @@ export function AnimalTable({ animals, onDelete }: AnimalTableProps) {
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent) => {
                             e.stopPropagation()
                             router.push(`/animals/${animal.id}/edit`)
                           }}
@@ -246,7 +258,7 @@ export function AnimalTable({ animals, onDelete }: AnimalTableProps) {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-gray-700" />
                         <DropdownMenuItem
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent) => {
                             e.stopPropagation()
                             handleDeleteClick(animal)
                           }}
