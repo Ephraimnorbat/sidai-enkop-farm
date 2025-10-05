@@ -174,10 +174,46 @@ Each QR code contains JSON data with:
 4. Configure media file handling
 5. Set secure `SECRET_KEY`
 
-### Frontend Deployment
-1. Build the application: `npm run build`
-2. Set production API URL in environment
-3. Deploy to Vercel, Netlify, or similar platform
+### Frontend Deployment to Vercel
+
+1. **Prepare your repository**
+   - Push your code to a GitHub/GitLab/Bitbucket repository
+
+2. **Deploy to Vercel**
+   - Go to [Vercel](https://vercel.com) and sign in
+   - Click "Add New" → "Project"
+   - Import your repository
+   - Configure project settings:
+     - Framework Preset: Next.js
+     - Root Directory: `frontend`
+     - Build Command: `npm run build`
+     - Output Directory: `.next`
+     - Install Command: `npm ci`
+
+3. **Configure Environment Variables**
+   In your Vercel project settings, add these environment variables:
+   ```
+   NEXT_PUBLIC_API_URL=https://sidai-enkop-farm.onrender.com
+   NODE_ENV=production
+   ```
+
+4. **Deploy**
+   - Click "Deploy" and wait for the build to complete
+   - Your site will be available at `https://your-project.vercel.app`
+
+### Environment Variables
+
+For local development, create a `.env.local` file in the frontend directory:
+
+```env
+# API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:8000
+
+# Other environment variables
+NODE_ENV=development
+```
+
+For production, set these variables in your Vercel project settings.
 
 ## Contributing
 
