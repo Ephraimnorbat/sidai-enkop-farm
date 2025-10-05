@@ -1,12 +1,14 @@
 import os
 from pathlib import Path
 from decouple import config
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-temporary-key-change-in-production')
 
 DEBUG = config('DEBUG', default=True, cast=bool)
+IN_PROD = config('IN_PROD', default=False, cast=bool)
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'localhost:3000', 'testserver','sidai-enkop-farm.onrender.com']
 
@@ -62,12 +64,22 @@ TEMPLATES = [
 WSGI_APPLICATION = 'farm_management.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if IN_PROD:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL'),  # Render provides this automatically
+            conn_max_age=600,
+            ssl_require=True
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
