@@ -139,7 +139,7 @@ export default function CreateAnimalPage() {
               </div>
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-dark-200 mb-2">
-                  Animal Name <span className="text-red-400">*</span>
+                  Animal Tag <span className="text-red-400">*</span>
                 </label>
                 <input
                   id="name"
@@ -149,7 +149,7 @@ export default function CreateAnimalPage() {
                   value={formData.name}
                   onChange={handleChange}
                   className="input-cyber w-full py-3 rounded-lg"
-                  placeholder="Enter animal name"
+                  placeholder="Enter animal tag"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -95,7 +95,7 @@ export default function AnimalsPage() {
               Filters
             </button>
             
-            {user?.permissions?.can_create_animals && (
+            {(user?.permissions?.can_create_animals || ['admin', 'manager'].includes(user?.role || '')) && (
               <Link href="/animals/create" className="btn-cyber flex items-center gap-2">
                 <PlusIcon className="h-5 w-5" />
                 Add Animal

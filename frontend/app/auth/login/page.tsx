@@ -23,8 +23,9 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      await login(formData)
-      router.push('/')
+      const user = await login(formData)
+      const staffRoles = ['admin', 'manager', 'staff', 'worker', 'farm_worker', 'farm_accountant']
+      router.replace(user.is_superuser || user.is_staff || staffRoles.includes(user.role || '') ? '/dashboard' : '/')
     } catch (err: any) {
       setError(err.message)
     } finally {

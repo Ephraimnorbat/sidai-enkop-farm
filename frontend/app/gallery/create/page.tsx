@@ -11,8 +11,8 @@ export default function GalleryCreatePage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return <div className="text-center py-12 text-dark-400">Only admins can upload gallery images.</div>
+  if (!isAuthenticated || !['admin', 'manager'].includes(user?.role || '')) {
+    return <div className="text-center py-12 text-dark-400">Administrator or manager access is required to upload gallery images.</div>
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

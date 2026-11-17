@@ -9,8 +9,8 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     """Automatically create UserProfile when User is created"""
     if created:
         profile = UserProfile.objects.create(user=instance)
-        # Assign default role based on whether this is the first user (admin) or not
-        if User.objects.count() == 1:
+        # Keep Django superusers as farm admins when their profile is created.
+        if instance.is_superuser or User.objects.count() == 1:
             profile.role = 'admin'
         else:
             profile.role = 'guest'
@@ -52,9 +52,9 @@ def update_user_groups(sender, instance, created, **kwargs):
                 user.is_superuser = True
                 needs_update = True
         else:
-            if user.is_staff or user.is_superuser:
+            # A farm profile update must never revoke Django superuser access.
+            if not user.is_superuser and user.is_staff:
                 user.is_staff = False
-                user.is_superuser = False
                 needs_update = True
         
         if needs_update:

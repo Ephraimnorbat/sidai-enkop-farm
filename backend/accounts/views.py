@@ -13,12 +13,46 @@ from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSe
 from permissions.permissions import IsAdminUser
 from permissions.models import UserProfile
 
+
+def user_payload(user):
+    """Return user data with farm roles and permissions, including Django superusers."""
+    profile = getattr(user, 'userprofile', None)
+    if user.is_superuser:
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        if profile.role != 'admin':
+            profile.role = 'admin'
+            profile.save()
+    elif profile and profile.role == 'admin':
+        # Repair older farm-admin accounts whose Django flags were cleared by the old signal.
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(update_fields=['is_staff', 'is_superuser'])
+
+    is_admin = user.is_superuser or bool(profile and profile.role == 'admin')
+    is_manager = bool(profile and profile.role == 'manager')
+    role = 'admin' if is_admin else (profile.role if profile else 'guest')
+    user_data = UserSerializer(user).data
+    user_data.update({
+        'role': role,
+        'role_display': 'Administrator' if is_admin else (profile.get_role_display() if profile else 'Guest User'),
+        'permissions': {
+            'can_create_animals': is_admin or is_manager,
+            'can_edit_animals': is_admin or is_manager or bool(profile and profile.is_farm_worker),
+            'can_delete_animals': is_admin or is_manager,
+            'can_view_reports': is_admin or is_manager or bool(profile and (profile.is_farm_worker or profile.is_farm_accountant)),
+            'can_manage_users': is_admin or is_manager,
+        },
+    })
+    return user_data
+
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def create_user_view(request):
     """Create a new user with role, salary, and weekly tasks (Admin only)"""
     user_data = request.data.get('user', {})
     profile_data = request.data.get('profile', {})
+    if profile_data.get('role') == 'admin' and not request.user.is_superuser:
+        return Response({'detail': 'Only a superuser can create an administrator account.'}, status=status.HTTP_403_FORBIDDEN)
 
     # Create user
     serializer = UserRegistrationSerializer(data=user_data)
@@ -27,17 +61,17 @@ def create_user_view(request):
         # Create or update profile
         profile, created = UserProfile.objects.get_or_create(user=user)
         profile.role = profile_data.get('role', 'guest')
-        profile.salary = profile_data.get('salary')
+        profile.salary = profile_data.get('salary') or None
         profile.weekly_tasks = profile_data.get('weekly_tasks', '')
         profile.phone_number = profile_data.get('phone_number')
         profile.employee_id = profile_data.get('employee_id')
-        profile.hire_date = profile_data.get('hire_date')
+        profile.hire_date = profile_data.get('hire_date') or None
         profile.is_active_employee = profile_data.get('is_active_employee', True)
         profile.notes = profile_data.get('notes', '')
         profile.save()
         return Response({
             'message': 'User created successfully',
-            'user': UserSerializer(user).data,
+            'user': user_payload(user),
             'profile': UserProfileSerializer(profile).data
         }, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -77,7 +111,7 @@ def login_view(request):
         
         return Response({
             'message': 'Login successful',
-            'user': UserSerializer(user).data,
+            'user': user_payload(user),
             'token': token.key,
             'csrf_token': get_token(request)
         }, status=status.HTTP_200_OK)
@@ -107,31 +141,7 @@ def logout_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile_view(request):
-    user_data = UserSerializer(request.user).data
-    
-    # Add role information if profile exists
-    if hasattr(request.user, 'userprofile'):
-        user_data['role'] = request.user.userprofile.role
-        user_data['role_display'] = request.user.userprofile.get_role_display()
-        user_data['permissions'] = {
-            'can_create_animals': request.user.userprofile.is_admin,
-            'can_edit_animals': request.user.userprofile.is_admin or request.user.userprofile.is_farm_worker,
-            'can_delete_animals': request.user.userprofile.is_admin,
-            'can_view_reports': request.user.userprofile.is_admin or request.user.userprofile.is_farm_worker or request.user.userprofile.is_farm_accountant,
-            'can_manage_users': request.user.userprofile.is_admin,
-        }
-    else:
-        user_data['role'] = 'guest'
-        user_data['role_display'] = 'Guest User'
-        user_data['permissions'] = {
-            'can_create_animals': False,
-            'can_edit_animals': False,
-            'can_delete_animals': False,
-            'can_view_reports': False,
-            'can_manage_users': False,
-        }
-    
-    return Response(user_data)
+    return Response(user_payload(request.user))
 
 
 @api_view(['GET'])
@@ -143,7 +153,7 @@ def csrf_token_view(request):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def list_users_view(request):
-    """List all users with their roles - Admin only"""
+    """List all farm accounts for administrators and managers."""
     users = User.objects.all().select_related('userprofile')
     users_data = []
     
@@ -166,6 +176,45 @@ def list_users_view(request):
     return Response({'users': users_data})
 
 
+@api_view(['PATCH', 'DELETE'])
+@permission_classes([IsAdminUser])
+def manage_user_view(request, user_id):
+    try:
+        user = User.objects.select_related('userprofile').get(pk=user_id)
+    except User.DoesNotExist:
+        return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'DELETE':
+        if request.user.pk == user.pk:
+            return Response({'detail': 'You cannot delete your own account.'}, status=status.HTTP_400_BAD_REQUEST)
+        if (user.is_superuser or getattr(getattr(user, 'userprofile', None), 'role', None) == 'admin') and not request.user.is_superuser:
+            return Response({'detail': 'Only a superuser can remove an administrator account.'}, status=status.HTTP_403_FORBIDDEN)
+        Token.objects.filter(user=user).delete()
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    if (user.is_superuser or profile.role == 'admin') and not request.user.is_superuser:
+        return Response({'detail': 'Only a superuser can change an administrator account.'}, status=status.HTTP_403_FORBIDDEN)
+    for field in ('username', 'email', 'first_name', 'last_name', 'is_active'):
+        if field in request.data:
+            setattr(user, field, request.data[field])
+    if 'role' in request.data:
+        new_role = request.data['role']
+        valid_roles = ['admin', 'manager', 'staff', 'worker', 'farm_worker', 'farm_accountant', 'guest']
+        if new_role not in valid_roles:
+            return Response({'role': ['Invalid role.']}, status=status.HTTP_400_BAD_REQUEST)
+        if new_role == 'admin' and not request.user.is_superuser:
+            return Response({'detail': 'Only a superuser can assign the administrator role.'}, status=status.HTTP_403_FORBIDDEN)
+        profile.role = new_role
+    for field in ('salary', 'weekly_tasks', 'phone_number', 'employee_id', 'hire_date', 'is_active_employee', 'notes'):
+        if field in request.data:
+            setattr(profile, field, request.data[field])
+    user.save()
+    profile.save()
+    return Response({'user': user_payload(user)})
+
+
 @api_view(['PUT'])
 @permission_classes([IsAdminUser])
 def update_user_role_view(request, user_id):
@@ -178,6 +227,10 @@ def update_user_role_view(request, user_id):
         valid_roles = ['admin', 'manager', 'staff', 'worker', 'farm_worker', 'farm_accountant', 'guest']
         if new_role not in valid_roles:
             return Response({'error': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
+        if new_role == 'admin' and not request.user.is_superuser:
+            return Response({'detail': 'Only a superuser can assign the administrator role.'}, status=status.HTTP_403_FORBIDDEN)
+        if (user.is_superuser or profile.role == 'admin') and not request.user.is_superuser:
+            return Response({'detail': 'Only a superuser can change an administrator account.'}, status=status.HTTP_403_FORBIDDEN)
 
         profile.role = new_role
         # Update salary and weekly_tasks if provided

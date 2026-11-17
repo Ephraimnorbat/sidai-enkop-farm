@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions
 from .models import News
 from .serializers import NewsSerializer
+from permissions.permissions import IsAdminUser
 
 class NewsViewSet(viewsets.ModelViewSet):
     queryset = News.objects.all().order_by('-published_at')
@@ -9,4 +10,4 @@ class NewsViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+        return [IsAdminUser()]

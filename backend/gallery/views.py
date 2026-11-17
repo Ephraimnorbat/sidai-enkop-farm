@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions
 from .models import GalleryImage
 from .serializers import GalleryImageSerializer
+from permissions.permissions import IsAdminUser
 
 class GalleryImageViewSet(viewsets.ModelViewSet):
     queryset = GalleryImage.objects.all().order_by('-uploaded_at')
@@ -9,4 +10,4 @@ class GalleryImageViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+        return [IsAdminUser()]

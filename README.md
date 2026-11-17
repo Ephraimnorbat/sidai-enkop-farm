@@ -33,11 +33,19 @@ A modern farm management system built for Sidai Enkop Ranch in Isinya, Kitengela
 - Contains all animal information including parentage
 - Farm branding included
 
+### Staff Tasks & Farm Inventory
+- Staff can log and update their own dated daily tasks
+- Managers can review team tasks and compare completion rates by staff
+- Weekly and monthly staff task reports can be exported as Excel workbooks
+- Farm inventory records quantities, units, categories, notes, and reorder thresholds
+- Inventory changes are restricted to managers and administrators
+
 ### Modern UI
-- Futuristic dark theme with cyber aesthetics
-- Responsive design for mobile and desktop
-- Animated components and hover effects
-- Professional gradients and glowing borders
+- Clean green, white, and near-black visual identity
+- Responsive ranch homepage with story, farm work, and gallery sections
+- Sticky translucent navigation with reduced-motion-aware animations
+- Staff task logging, team performance charts, and Excel reporting
+- Farm inventory tracking with low-stock alerts
 
 ## Getting Started
 
@@ -125,6 +133,23 @@ Frontend will be available at `http://localhost:3000`
 - `GET /api/api/animals/{id}/qr_code/` - Download QR code
 - `GET /api/api/animals/statistics/` - Get farm statistics
 - `GET /api/api/animals/parents/` - Get potential parents
+
+### Staff Tasks & Inventory
+- `GET /api/staff/tasks/` - List the signed-in user's tasks, or all tasks for a manager (`?start=YYYY-MM-DD&end=YYYY-MM-DD` optional)
+- `POST /api/staff/tasks/` - Log a task (`title`, `task_date`, optional `description`; managers may set `staff`)
+- `PATCH /api/staff/tasks/{id}/` - Update task status or details
+- `GET /api/staff/performance/?period=week|month` - Manager completion report by staff
+- `GET /api/staff/tasks-export/?period=week|month` - Download the report as an `.xlsx` workbook
+- `GET /api/inventory/` - List inventory (`?search=...` or `?low_stock=true` optional)
+- `POST /api/inventory/` - Add an inventory item (manager/admin)
+- `PATCH /api/inventory/{id}/` - Adjust an item (manager/admin)
+- `DELETE /api/inventory/{id}/` - Remove an item (manager/admin)
+
+If a superuser account was created before superuser flags were preserved by the profile signal, restore that named account from the backend environment with:
+
+```bash
+python manage.py restore_superuser --username YOUR_USERNAME
+```
 
 ## Animal ID Format
 

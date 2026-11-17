@@ -9,6 +9,8 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.user_profile_view, name='profile'),
     path('csrf-token/', views.csrf_token_view, name='csrf_token'),
+    path('users/create/', views.create_user_view, name='create_user'),
     path('users/', views.list_users_view, name='list_users'),
+    path('users/<int:user_id>/', views.manage_user_view, name='manage_user'),
     path('users/<int:user_id>/role/', views.update_user_role_view, name='update_user_role'),
 ]

@@ -10,6 +10,12 @@ export const galleryAPI = {
     })
     return response.data
   },
+  async updateImage(id: number, imageData: FormData) {
+    const response = await api.patch(`/api/gallery/gallery/${id}/`, imageData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  },
   async deleteImage(id: number) {
     const response = await api.delete(`/api/gallery/gallery/${id}/`)
     return response.data
@@ -28,15 +34,64 @@ export const newsAPI = {
     })
     return response.data
   },
+  async updateNews(id: number, newsData: FormData) {
+    const response = await api.patch(`/api/news/news/${id}/`, newsData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  },
   async deleteNews(id: number) {
     const response = await api.delete(`/api/news/news/${id}/`)
+    return response.data
+  },
+}
+
+export const farmAPI = {
+  async getTaskAssignees() {
+    const response = await api.get('/api/staff/assignees/')
+    return response.data as { id: number; name: string; username: string; role: string }[]
+  },
+  async getTasks(params?: { start?: string; end?: string }) {
+    const response = await api.get('/api/staff/tasks/', { params })
+    return response.data
+  },
+  async createTask(data: { title: string; description?: string; task_date: string; staff?: number }) {
+    const response = await api.post('/api/staff/tasks/', data)
+    return response.data
+  },
+  async updateTask(id: number, data: { status?: 'pending' | 'completed'; title?: string; description?: string; task_date?: string }) {
+    const response = await api.patch(`/api/staff/tasks/${id}/`, data)
+    return response.data
+  },
+  async getPerformance(params?: { period?: 'week' | 'month'; start?: string; end?: string }) {
+    const response = await api.get('/api/staff/performance/', { params })
+    return response.data
+  },
+  async exportTasks(params: { period: 'week' | 'month'; start?: string; end?: string }) {
+    const response = await api.get('/api/staff/tasks-export/', { params, responseType: 'blob' })
+    return response.data as Blob
+  },
+  async getInventory(params?: { search?: string; low_stock?: boolean }) {
+    const response = await api.get('/api/inventory/', { params })
+    return response.data
+  },
+  async createInventoryItem(data: { name: string; category?: string; quantity: number; unit: string; reorder_level: number; notes?: string }) {
+    const response = await api.post('/api/inventory/', data)
+    return response.data
+  },
+  async updateInventoryItem(id: number, data: Partial<{ name: string; category: string; quantity: number; unit: string; reorder_level: number; notes: string }>) {
+    const response = await api.patch(`/api/inventory/${id}/`, data)
+    return response.data
+  },
+  async deleteInventoryItem(id: number) {
+    const response = await api.delete(`/api/inventory/${id}/`)
     return response.data
   },
 }
 import axios from 'axios'
 import Cookies from 'js-cookie'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || '/'
 
 // Create axios instance
 const api = axios.create({
@@ -126,6 +181,21 @@ export const authAPI = {
 
   async getUsers() {
     const response = await api.get('/api/auth/users/')
+    return response.data
+  },
+
+  async createUser(data: { user: Record<string, unknown>; profile: Record<string, unknown> }) {
+    const response = await api.post('/api/auth/users/create/', data)
+    return response.data
+  },
+
+  async updateUser(userId: number, data: Record<string, unknown>) {
+    const response = await api.patch(`/api/auth/users/${userId}/`, data)
+    return response.data
+  },
+
+  async deleteUser(userId: number) {
+    const response = await api.delete(`/api/auth/users/${userId}/`)
     return response.data
   },
 

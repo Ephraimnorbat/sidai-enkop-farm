@@ -12,8 +12,8 @@ export default function NewsCreatePage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return <div className="text-center py-12 text-dark-400">Only admins can create news items.</div>
+  if (!isAuthenticated || !['admin', 'manager'].includes(user?.role || '')) {
+    return <div className="text-center py-12 text-dark-400">Administrator or manager access is required to create news items.</div>
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

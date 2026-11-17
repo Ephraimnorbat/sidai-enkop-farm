@@ -1,6 +1,9 @@
+'use client'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ANIMAL_TYPE_CHOICES } from '@/types'
+import { useAuth } from '@/components/AuthProvider'
+import { authAPI } from '@/lib/api'
 
 const ROLE_CHOICES = [
   { value: 'admin', label: 'Admin' },
@@ -13,6 +16,7 @@ const ROLE_CHOICES = [
 ]
 
 export default function CreateUserPage() {
+  const { user, isAuthenticated } = useAuth()
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -50,10 +54,7 @@ export default function CreateUserPage() {
     setError('')
     setIsLoading(true)
     try {
-      const res = await fetch('/api/users/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await authAPI.createUser({
           user: {
             username: formData.username,
             email: formData.email,
@@ -72,19 +73,17 @@ export default function CreateUserPage() {
             is_active_employee: formData.is_active_employee,
             notes: formData.notes,
           }
-        })
       })
-      const data = await res.json()
-      if (res.ok) {
-        router.push('/users')
-      } else {
-        setError(data.message || 'Failed to create user')
-      }
-    } catch (err) {
-      setError('Failed to create user')
+      router.push('/users')
+    } catch (err: any) {
+      setError(err.response?.data?.detail || err.response?.data?.username?.[0] || err.response?.data?.password?.[0] || 'Failed to create user')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (!isAuthenticated || !['admin', 'manager'].includes(user?.role || '')) {
+    return <div className="text-center py-12 text-dark-400">Administrator or manager access is required.</div>
   }
 
   return (
@@ -99,7 +98,7 @@ export default function CreateUserPage() {
         <input name="first_name" value={formData.first_name} onChange={handleChange} placeholder="First Name" className="input-cyber w-full" />
         <input name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Last Name" className="input-cyber w-full" />
         <select name="role" value={formData.role} onChange={handleChange} required className="input-cyber w-full">
-          {ROLE_CHOICES.map(role => (
+          {ROLE_CHOICES.filter(role => role.value !== 'admin' || user?.is_superuser).map(role => (
             <option key={role.value} value={role.value}>{role.label}</option>
           ))}
         </select>

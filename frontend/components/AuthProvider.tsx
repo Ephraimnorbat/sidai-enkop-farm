@@ -10,7 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   loading?: boolean // For backward compatibility
-  login: (credentials: { username: string; password: string }) => Promise<void>
+  login: (credentials: { username: string; password: string }) => Promise<User>
   register: (userData: {
     username: string
     email: string
@@ -61,8 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       setUser(response.user)
+      return response.user
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed')
+      const responseData = error.response?.data
+      const message = responseData?.message || responseData?.non_field_errors?.[0] || responseData?.username?.[0]
+      throw new Error(message || 'Login failed. Check your username and password.')
     }
   }
 

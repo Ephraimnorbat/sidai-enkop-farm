@@ -4,13 +4,15 @@ from .models import UserProfile
 
 
 class IsAdminUser(BasePermission):
-    """Permission class for Farm Administrators"""
+    """Permission class for farm administrators and managers."""
     
     def has_permission(self, request, view):
+        if request.user.is_authenticated and request.user.is_superuser:
+            return True
         return (
             request.user.is_authenticated and 
             hasattr(request.user, 'userprofile') and 
-            request.user.userprofile.is_admin
+            (request.user.userprofile.is_admin or request.user.userprofile.is_manager)
         )
 
 
@@ -18,6 +20,8 @@ class IsFarmWorker(BasePermission):
     """Permission class for Farm Workers"""
     
     def has_permission(self, request, view):
+        if request.user.is_authenticated and request.user.is_superuser:
+            return True
         return (
             request.user.is_authenticated and 
             hasattr(request.user, 'userprofile') and 
@@ -29,6 +33,8 @@ class IsFarmAccountant(BasePermission):
     """Permission class for Farm Accountants"""
     
     def has_permission(self, request, view):
+        if request.user.is_authenticated and request.user.is_superuser:
+            return True
         return (
             request.user.is_authenticated and 
             hasattr(request.user, 'userprofile') and 
@@ -44,14 +50,17 @@ class IsAdminOrReadOnlyFarmWorker(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
+
+        if request.user.is_superuser:
+            return True
             
         if not hasattr(request.user, 'userprofile'):
             return False
             
         profile = request.user.userprofile
         
-        # Admin has full access
-        if profile.is_admin:
+        # Administrators and managers have full access.
+        if profile.is_admin or profile.is_manager:
             return True
             
         # Farm workers can only read (GET, HEAD, OPTIONS)
@@ -69,12 +78,15 @@ class IsAdminOrFarmWorker(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
+
+        if request.user.is_superuser:
+            return True
             
         if not hasattr(request.user, 'userprofile'):
             return False
             
         profile = request.user.userprofile
-        return profile.is_admin or profile.is_farm_worker
+        return profile.is_admin or profile.is_manager or profile.is_farm_worker
 
 
 class CanManageAnimals(BasePermission):
@@ -87,14 +99,17 @@ class CanManageAnimals(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
+
+        if request.user.is_superuser:
+            return True
             
         if not hasattr(request.user, 'userprofile'):
             return False
             
         profile = request.user.userprofile
         
-        # Admin has full access
-        if profile.is_admin:
+        # Administrators and managers have full access.
+        if profile.is_admin or profile.is_manager:
             return True
             
         # Farm workers have limited access
@@ -119,6 +134,9 @@ class CanViewReports(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
+
+        if request.user.is_superuser:
+            return True
             
         if not hasattr(request.user, 'userprofile'):
             return False
@@ -126,4 +144,4 @@ class CanViewReports(BasePermission):
         profile = request.user.userprofile
         
         # Admin and Farm Workers can view reports
-        return profile.is_admin or profile.is_farm_worker or profile.is_farm_accountant
+        return profile.is_admin or profile.is_manager or profile.is_farm_worker or profile.is_farm_accountant
